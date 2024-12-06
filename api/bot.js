@@ -15,13 +15,29 @@ const dexAbi = [
 ];
 const dexRouter = new ethers.Contract(DEX_ROUTER_ADDRESS, dexAbi, wallet);
 
+// Log initialization
+console.log('Initializing Trading Bot...');
+console.log(`Using Base RPC URL: ${RPC_URL}`);
+console.log(`DEX Router Address: ${DEX_ROUTER_ADDRESS}`);
+console.log(`Wallet Address: ${wallet.address}`);
+
+// Test Axios
+console.log('Testing Axios...');
+axios.get('https://api.coingecko.com/api/v3/ping')
+  .then(response => {
+    console.log('Axios Test Successful:', response.data);
+  })
+  .catch(error => {
+    console.error('Axios Test Failed:', error.message);
+  });
+
 // Fetch wallet balances
 async function getWalletBalances() {
+  console.log('Fetching wallet balances...');
   const tokenAbi = ['function balanceOf(address owner) public view returns (uint256)'];
   const tokens = await fetchTopTokens();
   const balances = {};
 
-  console.log('Fetching wallet balances...');
   for (const token of tokens) {
     try {
       const tokenContract = new ethers.Contract(token.address, tokenAbi, provider);
@@ -52,13 +68,14 @@ async function fetchTopTokens() {
         category: 'base-network',
       },
     });
-    console.log('Top tokens fetched:', response.data.map((token) => token.symbol).join(', '));
-    return response.data.map((token) => ({
+    const tokens = response.data.map((token) => ({
       id: token.id,
       symbol: token.symbol,
       address: token.contract_address,
       volume: token.total_volume,
     }));
+    console.log('Top tokens fetched:', tokens.map((t) => t.symbol).join(', '));
+    return tokens;
   } catch (error) {
     console.error('Error fetching top tokens:', error.message);
     return [];
@@ -95,8 +112,6 @@ function analyzeTrends(historicalData) {
   const averagePrice = prices.reduce((sum, price) => sum + price, 0) / prices.length;
 
   console.log(`Current Price: ${currentPrice}, Average Price: ${averagePrice}`);
-
-  // Return true if the current price is significantly lower than the average (potential buy signal)
   return currentPrice < averagePrice * 0.9; // 10% below average
 }
 
@@ -110,9 +125,8 @@ async function executeBalancedTrades() {
     const tokenIn = token.address;
     const ethBalance = ethers.parseEther(balances['ETH'] || '0');
 
-    // Handle first-time trades using Base ETH
     if (ethBalance.gt(0)) {
-      console.log(`Using Base ETH to evaluate trades...`);
+      console.log(`Evaluating trade for token: ${token.symbol}`);
       const historicalData = await fetchHistoricalData(token.id);
       const shouldTrade = analyzeTrends(historicalData);
 
