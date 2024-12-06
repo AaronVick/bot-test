@@ -11,13 +11,10 @@ console.log('Initializing Trading Bot...');
 const provider = new ethers.JsonRpcProvider(RPC_URL);
 console.log(`Using Base RPC URL: ${RPC_URL}`);
 
-const privateKey = process.env.PRIVATE_KEY?.replace('0x', ''); // Ensure no "0x"
-if (!privateKey) {
-  console.error('Private key is missing in environment variables!');
-  process.exit(1);
-}
-const wallet = new ethers.Wallet(privateKey, provider);
-console.log(`Wallet Address: ${wallet.address}`);
+const provider = new ethers.JsonRpcProvider(RPC_URL);
+const rawKey = process.env.PRIVATE_KEY.replace('0x', '');
+console.log('Key length:', rawKey.length); // Debug
+const wallet = new ethers.Wallet(rawKey, provider);
 
 const dexAbi = [
   'function getAmountsOut(uint256 amountIn, address[] memory path) external view returns (uint256[])',
