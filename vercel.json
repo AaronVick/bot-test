@@ -4,17 +4,12 @@
     {
       "src": "next.config.js",
       "use": "@vercel/next"
-    },
-    {
-      "src": "api/bot.js",
-      "use": "@vercel/node",
-      "config": { "includeFiles": ["node_modules/**"] }
     }
   ],
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "/api/bot.js"
+      "dest": "/$1"
     }
   ]
 }
