@@ -1,14 +1,14 @@
 import { ethers } from 'ethers';
 import axios from 'axios';
 
-// Hardcoded Base RPC URL and Uniswap V2 Router02 Address
 const RPC_URL = 'https://mainnet.base.org';
 const DEX_ROUTER_ADDRESS = '0x4752ba5dbc23f44d87826276bf6fd6b1c372ad24';
-const BASE_TOKEN = '0x4200000000000000000000000000000000000006'; // Base-native token (WETH equivalent)
+const BASE_TOKEN = '0x4200000000000000000000000000000000000006';
 
 const provider = new ethers.JsonRpcProvider(RPC_URL);
-const wallet = new ethers.Wallet(`0x${process.env.PRIVATE_KEY}`, provider);
-
+const privateKey = process.env.PRIVATE_KEY;
+console.log('Private key available:', !!privateKey);
+const wallet = new ethers.Wallet(privateKey || '', provider);
 const dexAbi = [
   'function getAmountsOut(uint256 amountIn, address[] memory path) external view returns (uint256[])',
   'function swapExactTokensForTokens(uint256 amountIn, uint256 amountOutMin, address[] memory path, address to, uint256 deadline) external',
