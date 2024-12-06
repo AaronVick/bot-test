@@ -1,40 +1,43 @@
 import { ethers } from 'ethers';
 import axios from 'axios';
 
+// Constants
 const RPC_URL = 'https://mainnet.base.org';
 const DEX_ROUTER_ADDRESS = '0x4752ba5dbc23f44d87826276bf6fd6b1c372ad24';
 const BASE_TOKEN = '0x4200000000000000000000000000000000000006';
 
+// Initialize Provider and Wallet
+console.log('Initializing Trading Bot...');
 const provider = new ethers.JsonRpcProvider(RPC_URL);
-const privateKey = process.env.PRIVATE_KEY.startsWith('0x') ? 
-  process.env.PRIVATE_KEY : 
-  `0x${process.env.PRIVATE_KEY}`;
-const wallet = new ethers.Wallet(privateKey, provider);
+console.log(`Using Base RPC URL: ${RPC_URL}`);
 
+const privateKey = process.env.PRIVATE_KEY?.replace('0x', ''); // Ensure no "0x"
+if (!privateKey) {
+  console.error('Private key is missing in environment variables!');
+  process.exit(1);
+}
+const wallet = new ethers.Wallet(privateKey, provider);
+console.log(`Wallet Address: ${wallet.address}`);
 
 const dexAbi = [
   'function getAmountsOut(uint256 amountIn, address[] memory path) external view returns (uint256[])',
   'function swapExactTokensForTokens(uint256 amountIn, uint256 amountOutMin, address[] memory path, address to, uint256 deadline) external',
 ];
 const dexRouter = new ethers.Contract(DEX_ROUTER_ADDRESS, dexAbi, wallet);
-
-// Log initialization
-console.log('Initializing Trading Bot...');
-console.log(`Using Base RPC URL: ${RPC_URL}`);
 console.log(`DEX Router Address: ${DEX_ROUTER_ADDRESS}`);
-console.log(`Wallet Address: ${wallet.address}`);
 
 // Test Axios
 console.log('Testing Axios...');
-axios.get('https://api.coingecko.com/api/v3/ping')
-  .then(response => {
+axios
+  .get('https://api.coingecko.com/api/v3/ping')
+  .then((response) => {
     console.log('Axios Test Successful:', response.data);
   })
-  .catch(error => {
+  .catch((error) => {
     console.error('Axios Test Failed:', error.message);
   });
 
-// Fetch wallet balances
+// Fetch Wallet Balances
 async function getWalletBalances() {
   console.log('Fetching wallet balances...');
   const tokenAbi = ['function balanceOf(address owner) public view returns (uint256)'];
@@ -58,7 +61,7 @@ async function getWalletBalances() {
   return balances;
 }
 
-// Fetch top tokens by volume
+// Fetch Top Tokens by Volume
 async function fetchTopTokens() {
   console.log('Fetching top tokens by volume...');
   try {
@@ -85,7 +88,7 @@ async function fetchTopTokens() {
   }
 }
 
-// Fetch historical data for a token
+// Fetch Historical Data for a Token
 async function fetchHistoricalData(tokenId) {
   console.log(`Fetching historical data for ${tokenId}...`);
   try {
@@ -103,10 +106,10 @@ async function fetchHistoricalData(tokenId) {
   }
 }
 
-// Analyze historical price trends
+// Analyze Historical Price Trends
 function analyzeTrends(historicalData) {
   if (historicalData.length === 0) {
-    console.log('No historical data available to analyze trends.');
+    console.warn('No historical data available to analyze trends.');
     return false;
   }
 
@@ -118,12 +121,12 @@ function analyzeTrends(historicalData) {
   return currentPrice < averagePrice * 0.9; // 10% below average
 }
 
-// Execute trades based on analysis
+// Execute Trades Based on Analysis
 async function executeBalancedTrades() {
+  console.log('Starting trade execution...');
   const tokens = await fetchTopTokens();
   const balances = await getWalletBalances();
 
-  console.log('Starting to execute trades...');
   for (const token of tokens) {
     const tokenIn = token.address;
     const ethBalance = ethers.parseEther(balances['ETH'] || '0');
@@ -160,12 +163,12 @@ async function executeBalancedTrades() {
         console.log(`Trade skipped for ${token.symbol}: Current price is not favorable.`);
       }
     } else {
-      console.log(`No ETH balance available for trading.`);
+      console.log('No ETH balance available for trading.');
     }
   }
 }
 
-// Serverless function handler
+// Serverless Function Handler
 export default async function handler(req, res) {
   console.log('Bot triggered...');
   try {
