@@ -11,9 +11,22 @@ console.log('Initializing Trading Bot...');
 const provider = new ethers.JsonRpcProvider(RPC_URL);
 console.log(`Using Base RPC URL: ${RPC_URL}`);
 
-const rawKey = process.env.PRIVATE_KEY.replace('0x', '');
-console.log('Key length:', rawKey.length);
-const wallet = new ethers.Wallet(rawKey, provider);
+// Handle private key securely and validate
+const rawPrivateKey = process.env.PRIVATE_KEY?.trim();
+if (!rawPrivateKey) {
+  console.error('Private key is missing! Please ensure PRIVATE_KEY is set in the environment variables.');
+  process.exit(1);
+}
+const formattedPrivateKey = rawPrivateKey.startsWith('0x') ? rawPrivateKey : `0x${rawPrivateKey}`;
+
+let wallet;
+try {
+  wallet = new ethers.Wallet(formattedPrivateKey, provider);
+  console.log(`Wallet Address: ${wallet.address}`);
+} catch (error) {
+  console.error('Invalid private key:', error.message);
+  process.exit(1);
+}
 
 const dexAbi = [
   'function getAmountsOut(uint256 amountIn, address[] memory path) external view returns (uint256[])',
@@ -32,6 +45,7 @@ axios
   .catch((error) => {
     console.error('Axios Test Failed:', error.message);
   });
+
 // Fetch Wallet Balances
 async function getWalletBalances() {
   console.log('Fetching wallet balances...');
