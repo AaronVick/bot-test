@@ -11,9 +11,8 @@ console.log('Initializing Trading Bot...');
 const provider = new ethers.JsonRpcProvider(RPC_URL);
 console.log(`Using Base RPC URL: ${RPC_URL}`);
 
-const provider = new ethers.JsonRpcProvider(RPC_URL);
 const rawKey = process.env.PRIVATE_KEY.replace('0x', '');
-console.log('Key length:', rawKey.length); // Debug
+console.log('Key length:', rawKey.length);
 const wallet = new ethers.Wallet(rawKey, provider);
 
 const dexAbi = [
@@ -33,7 +32,6 @@ axios
   .catch((error) => {
     console.error('Axios Test Failed:', error.message);
   });
-
 // Fetch Wallet Balances
 async function getWalletBalances() {
   console.log('Fetching wallet balances...');
